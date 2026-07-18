@@ -1,0 +1,1129 @@
+<meta charset="utf-8">
+<title>Aire Baths — Financial &amp; Workforce Dashboard</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:        #f9f9f7;
+    --surface:     #fcfcfb;
+    --surface-2:   #f3f2ee;
+    --ink:         #0b0b0b;
+    --ink-2:       #52514e;
+    --ink-muted:   #898781;
+    --grid:        #e1e0d9;
+    --baseline:    #c3c2b7;
+    --border:      rgba(11,11,11,0.10);
+    --border-2:    rgba(11,11,11,0.16);
+
+    --blue:    #2a78d6;
+    --aqua:    #1baf7a;
+    --yellow:  #eda100;
+    --green:   #008300;
+    --violet:  #4a3aa7;
+    --red:     #e34948;
+    --magenta: #e87ba4;
+    --orange:  #eb6834;
+
+    --good:     #0ca30c;
+    --warning:  #fab219;
+    --serious:  #ec835a;
+    --critical: #d03b3b;
+
+    --seq-250: #86b6ef;
+    --seq-350: #5598e7;
+    --seq-450: #2a78d6;
+    --seq-550: #1c5cab;
+    --seq-650: #104281;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page:        #0d0d0d;
+      --surface:     #1a1a19;
+      --surface-2:   #212120;
+      --ink:         #ffffff;
+      --ink-2:       #c3c2b7;
+      --ink-muted:   #898781;
+      --grid:        #2c2c2a;
+      --baseline:    #383835;
+      --border:      rgba(255,255,255,0.10);
+      --border-2:    rgba(255,255,255,0.16);
+      --blue: #3987e5; --aqua: #199e70; --yellow: #c98500; --green: #008300;
+      --violet: #9085e9; --red: #e66767; --magenta: #d55181; --orange: #d95926;
+      --seq-250: #184f95; --seq-350: #256abf; --seq-450: #3987e5; --seq-550: #5598e7; --seq-650: #86b6ef;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --surface-2: #212120;
+    --ink: #ffffff; --ink-2: #c3c2b7; --ink-muted: #898781;
+    --grid: #2c2c2a; --baseline: #383835;
+    --border: rgba(255,255,255,0.10); --border-2: rgba(255,255,255,0.16);
+    --blue: #3987e5; --aqua: #199e70; --yellow: #c98500; --green: #008300;
+    --violet: #9085e9; --red: #e66767; --magenta: #d55181; --orange: #d95926;
+    --seq-250: #184f95; --seq-350: #256abf; --seq-450: #3987e5; --seq-550: #5598e7; --seq-650: #86b6ef;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--page); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1220px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  .masthead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 20px; }
+  .masthead h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+  .masthead .sub { margin: 6px 0 0; font-size: 14px; color: var(--ink-2); max-width: 62ch; }
+  .asof { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-muted); border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; white-space: nowrap; }
+  .asof .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--critical); }
+
+  .tabbar { display: flex; gap: 6px; border-bottom: 1px solid var(--border); margin-bottom: 28px; padding-bottom: 0; }
+  .tab-btn {
+    appearance: none; border: none; background: none; cursor: pointer;
+    font-family: inherit; font-size: 14px; font-weight: 600; color: var(--ink-muted);
+    padding: 10px 16px; border-radius: 8px 8px 0 0; position: relative; top: 1px;
+  }
+  .tab-btn:hover { color: var(--ink-2); }
+  .tab-btn.active { color: var(--ink); border-bottom: 2px solid var(--blue); }
+  .tab-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); margin: 0 0 4px; }
+  .section-title { font-size: 18px; font-weight: 700; margin: 0 0 2px; }
+  .section-note { font-size: 13px; color: var(--ink-2); margin: 0 0 16px; max-width: 74ch; }
+  section.block { margin-top: 44px; }
+  section.block:first-child { margin-top: 0; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(172px, 1fr)); gap: 12px; margin-bottom: 8px; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .kpi .label { font-size: 12px; color: var(--ink-2); }
+  .kpi .value { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+  .kpi .value.neg { color: var(--critical); }
+  .kpi .value.pos { color: var(--good); }
+  .kpi .foot { font-size: 11.5px; color: var(--ink-muted); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px 18px; }
+  .card h3 { margin: 0; font-size: 14px; font-weight: 700; }
+  .card h4 { margin: 18px 0 10px; font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
+  .card h4:first-of-type { margin-top: 0; }
+  .card .card-sub { margin: 3px 0 16px; font-size: 12.5px; color: var(--ink-muted); }
+  .card.span-2 { grid-column: span 2; }
+  @media (max-width: 760px) { .card.span-2 { grid-column: span 1; } }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 0 14px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+  .line-swatch { width: 14px; height: 2px; border-radius: 1px; flex: none; }
+
+  .bar-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .bar-row:last-child { margin-bottom: 0; }
+  .bar-row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12.5px; }
+  .bar-row-head .name { color: var(--ink); font-weight: 500; }
+  .bar-row-head .val { color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .bar-track { position: relative; height: 14px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+  .bar-fill { position: absolute; top: 0; left: 0; height: 100%; border-radius: 4px; }
+  .funnel-row .bar-track { height: 20px; border-radius: 5px; }
+  .funnel-conv { font-size: 11px; color: var(--ink-muted); margin-top: 2px; }
+
+  .div-track { position: relative; height: 14px; }
+  .div-center { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--baseline); }
+  .div-track .div-fill { position: absolute; top: 0; height: 100%; border-radius: 3px; }
+
+  .meter-wrap { display: flex; height: 22px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+  .meter-seg { height: 100%; }
+  .meter-legend { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; }
+  .meter-legend .item { font-size: 12.5px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+  .meter-legend .n { color: var(--ink); font-weight: 600; }
+
+  .chart-svg-wrap { position: relative; }
+  svg.linechart { width: 100%; height: auto; display: block; overflow: visible; }
+  .tooltip {
+    position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--border-2);
+    border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+    opacity: 0; transition: opacity 0.08s ease; white-space: nowrap; z-index: 5;
+  }
+  .tooltip .t-month { font-weight: 700; margin-bottom: 4px; }
+  .tooltip .t-row { display: flex; align-items: center; gap: 6px; }
+  .tooltip .t-row + .t-row { margin-top: 2px; }
+  .tooltip .t-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .tooltip .t-val { font-variant-numeric: tabular-nums; margin-left: auto; font-weight: 600; }
+
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.data-table th, table.data-table td { text-align: right; padding: 6px 8px; font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  table.data-table th:first-child, table.data-table td:first-child { text-align: left; font-variant-numeric: normal; white-space: normal; }
+  table.data-table th { color: var(--ink-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; }
+  table.data-table tr.hl td { background: color-mix(in srgb, var(--blue) 10%, transparent); }
+  .table-wrap { overflow-x: auto; }
+
+  .spark-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+  .spark-cell { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .spark-cell .sc-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; margin-bottom: 4px; }
+  .spark-cell .sc-city { font-weight: 600; }
+  .spark-cell .sc-val { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .spark-cell svg { width: 100%; height: 30px; display: block; }
+
+  .heatmap-wrap { overflow-x: auto; }
+  table.heatmap { border-collapse: collapse; font-size: 11px; }
+  table.heatmap th, table.heatmap td { padding: 0; }
+  table.heatmap th { font-weight: 600; color: var(--ink-muted); font-size: 10.5px; padding: 4px 6px; text-align: center; }
+  table.heatmap th.rh { text-align: left; padding-right: 10px; }
+  table.heatmap td.cell { width: 34px; height: 26px; text-align: center; }
+  table.heatmap td.cell div { width: 100%; height: 100%; border-radius: 3px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 10px; }
+  table.heatmap td.rh { font-weight: 500; padding-right: 10px; white-space: nowrap; }
+  table.heatmap td.empty { background: none; }
+
+  .stackbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .stackbar-row:last-child { margin-bottom: 0; }
+  .stackbar-row .sb-label { width: 96px; flex: none; font-size: 12px; }
+  .stackbar-track { flex: 1; display: flex; height: 16px; border-radius: 4px; overflow: hidden; }
+  .stackbar-seg { height: 100%; }
+
+  .calc-controls { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 18px; }
+  .calc-field { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; color: var(--ink-2); }
+  .calc-field select, .calc-field input {
+    font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 7px; border: 1px solid var(--border-2);
+    background: var(--surface); color: var(--ink); min-width: 200px;
+  }
+  .calc-field select:focus-visible, .calc-field input:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+
+  .alert-banner { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; font-size: 13px; }
+  .alert-banner.critical { background: color-mix(in srgb, var(--critical) 12%, transparent); color: var(--critical); }
+  .alert-banner .n { font-weight: 700; }
+  .alert-list { display: flex; flex-direction: column; gap: 8px; }
+
+  footer.foot-note { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--border); font-size: 12px; color: var(--ink-muted); }
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <h1>Aire Baths — Financial &amp; Workforce Dashboard</h1>
+      <p class="sub">Unified view across P&amp;L, recruiting, retention, customers, membership, and marketing · AIRE_LOCAL_DB.WORKFORCE_ANALYTICS</p>
+    </div>
+    <div class="asof"><span class="dot"></span>Actuals through Apr 2026 · forecast to Jul 2026</div>
+  </div>
+
+  <div class="tabbar" role="tablist">
+    <button class="tab-btn active" data-tab="financial" role="tab" aria-selected="true">Financial</button>
+    <button class="tab-btn" data-tab="workforce" role="tab" aria-selected="false">Workforce</button>
+    <button class="tab-btn" data-tab="growth" role="tab" aria-selected="false">Customer &amp; Growth</button>
+  </div>
+
+  <!-- ============ TAB: FINANCIAL ============ -->
+  <div class="tab-panel active" id="tab-financial">
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Total revenue</div><div class="value">$32.1M</div><div class="foot">Jun 2024 – Apr 2026</div></div>
+      <div class="kpi"><div class="label">Net profit</div><div class="value neg">-$13.0M</div><div class="foot">-40.3% margin, company-wide</div></div>
+      <div class="kpi"><div class="label">Refund rate</div><div class="value">0.99%</div><div class="foot">$332,664 refunded of $33.6M booked</div></div>
+      <div class="kpi"><div class="label">Recruiting &amp; agency spend</div><div class="value">$2.19M</div><div class="foot">Jun 2024 – Apr 2026</div></div>
+    </div>
+
+    <section class="block">
+      <p class="eyebrow">Profitability trends</p>
+      <h2 class="section-title">Revenue is growing — profit isn't following</h2>
+      <p class="section-note">Monthly revenue has climbed steadily, but net profit has stayed negative in all but two months, briefly turning positive in Dec 2025 and Mar 2026.</p>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h3>Revenue vs. net profit, by month</h3>
+        <p class="card-sub">Company-wide, in USD. Hover a point for exact values.</p>
+        <div class="legend">
+          <div class="legend-item"><span class="line-swatch" style="background:var(--blue)"></span>Revenue</div>
+          <div class="legend-item"><span class="line-swatch" style="background:var(--red)"></span>Net profit</div>
+        </div>
+        <div class="chart-svg-wrap" id="trendChart"></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card"><h3>Cost composition</h3><p class="card-sub">Total cost by category, Jun 2024 – Apr 2026</p><div id="costChart"></div></div>
+        <div class="card"><h3>Net profit by location</h3><p class="card-sub">London is the only profitable location</p><div id="cityChart"></div></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <p class="eyebrow">Cost optimization</p>
+      <h2 class="section-title">Where to reduce cost and improve efficiency</h2>
+      <p class="section-note">Overtime and staffing ratios point to two different problems: some locations are burning cash on overtime, others may simply be overstaffed relative to revenue.</p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Overtime savings opportunity</h3>
+          <p class="card-sub">Total overtime (23mo): <strong id="otTotal"></strong> · highest: <strong id="otHighest"></strong></p>
+          <div id="otChart"></div>
+        </div>
+        <div class="card">
+          <h3>Revenue per employee</h3>
+          <p class="card-sub">Only Austin and Chicago have active headcount records in Workday HCM — the other 8 locations show no active employees in this dataset, so a per-employee ratio can't be computed for them.</p>
+          <div id="revPerEmpChart"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <p class="eyebrow">Room investment ROI</p>
+      <h2 class="section-title">Should we build another treatment room?</h2>
+      <p class="section-note">Model the payback period and annual ROI of adding one treatment room at any location.</p>
+      <div class="card">
+        <h3>Room investment ROI calculator</h3>
+        <p class="card-sub">Pick a location and a build cost — results recalculate instantly.</p>
+        <div class="calc-controls">
+          <label class="calc-field">Location <select id="roiCity"></select></label>
+          <label class="calc-field">Room build cost ($) <input id="roiCost" type="number" min="50000" max="500000" step="10000" value="200000"></label>
+        </div>
+        <div class="kpi-grid" id="roiResults"></div>
+        <div class="grid-2">
+          <div><h4>Current room economics</h4><div class="table-wrap" id="roiEconTable"></div></div>
+          <div><h4>Payback scenarios</h4><div class="table-wrap" id="roiScenarioTable"></div></div>
+        </div>
+        <h4>Annual ROI by location, at selected build cost</h4>
+        <div id="roiCityChart"></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <p class="eyebrow">Refund analysis</p>
+      <h2 class="section-title">Refunds are small but concentrated</h2>
+      <p class="section-note">2,640 refunds totaling $332,664 — a 0.99% overall rate — but rates vary 7x between the highest and lowest location.</p>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="label">Total refunds</div><div class="value">2,640</div></div>
+        <div class="kpi"><div class="label">Refund amount</div><div class="value">$332,664</div></div>
+        <div class="kpi"><div class="label">Overall refund rate</div><div class="value">0.99%</div></div>
+        <div class="kpi"><div class="label">Revenue impact</div><div class="value">$332,664</div></div>
+      </div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="card"><h3>Refund rate by location</h3><div id="refundRateChart"></div></div>
+        <div class="card"><h3>Refund dollars by location</h3><div id="refundAmtChart"></div></div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h3>Drill down: refund $ by location and service</h3>
+        <p class="card-sub">Filter to a single location, or view all</p>
+        <label class="calc-field" style="margin-bottom:14px;">Location <select id="refundCityFilter"><option value="All">All</option></select></label>
+        <div id="refundDrilldown"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ TAB: WORKFORCE ============ -->
+  <div class="tab-panel" id="tab-workforce">
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Active employees</div><div class="value">70</div><div class="foot">Workday HCM, all active status</div></div>
+      <div class="kpi"><div class="label">Open requisitions</div><div class="value">48</div></div>
+      <div class="kpi"><div class="label">Avg. turnover rate</div><div class="value neg">80%</div><div class="foot">Trailing 12 months, all roles</div></div>
+      <div class="kpi"><div class="label">Understaffed location-months</div><div class="value neg">98.6%</div><div class="foot">138 of 140 observed</div></div>
+      <div class="kpi"><div class="label">Therapist hiring gap</div><div class="value neg">381</div><div class="foot">Jul 2026 forecast</div></div>
+    </div>
+
+    <section class="block">
+      <p class="eyebrow">Executive summary</p>
+      <h2 class="section-title">A workforce stretched thin</h2>
+      <p class="section-note">10 open locations, but active employee records in Workday HCM only exist for Austin and Chicago (35 each) — every other location is being run without an up-to-date HCM record, which itself is a staffing-data gap worth flagging.</p>
+      <div class="grid-2">
+        <div class="card"><h3>Headcount by location</h3><div id="headcountLocChart"></div></div>
+        <div class="card"><h3>Headcount by role</h3><div id="headcountRoleChart"></div></div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h3>Staffing alerts</h3>
+        <div class="alert-list" id="staffingAlerts"></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <p class="eyebrow">Recruiting</p>
+      <h2 class="section-title">Chronic understaffing meets severe turnover</h2>
+      <p class="section-note">Recruiting converts applicants to hires at roughly 15%, while nearly every role loses staff faster than it can replace them — a self-reinforcing shortage.</p>
+      <div class="grid-2">
+        <div class="card"><h3>Recruiting funnel</h3><p class="card-sub">1,208 applicants → 183 hires (15.1% overall) · avg. 31 days to fill</p><div id="funnelChart"></div></div>
+        <div class="card"><h3>12-month turnover rate by role</h3><p class="card-sub">Color marks retention risk tier</p><div id="turnoverChart"></div></div>
+      </div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="card">
+          <h3>Recruiting ROI</h3>
+          <p class="card-sub">$417K spend (6mo) · 183 hires · $2K avg. cost/hire</p>
+          <div id="costPerHireChart"></div>
+        </div>
+        <div class="card">
+          <h3>GEM spend by category</h3>
+          <div id="gemChart"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <p class="eyebrow">Staffing &amp; retention</p>
+      <h2 class="section-title">Demand keeps outpacing headcount</h2>
+      <p class="section-note">A ratio above 1.0 means booking demand is outpacing therapist headcount. Nearly every location — and nearly every month — is above that line; London's ratio spiked past 18x in Dec 2025–Feb 2026.</p>
+      <div class="card">
+        <h3>Staffing status across all location-months</h3>
+        <div id="staffingMeter"></div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h3>Therapist demand ratio, by location</h3>
+        <p class="card-sub">Ratio &gt; 1.0 = demand outpacing staff. Red = currently above 1.0.</p>
+        <div class="spark-grid" id="demandSparkGrid"></div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h3>Turnover rate by role × location</h3>
+        <p class="card-sub">Cells only shown where that role exists at that location</p>
+        <div class="heatmap-wrap" id="retentionHeatmap"></div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h3>Labor cost by location</h3>
+        <p class="card-sub">Monthly labor + overtime cost, Jun 2024 – Apr 2026</p>
+        <div class="spark-grid" id="laborSparkGrid"></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <p class="eyebrow">Outlook</p>
+      <h2 class="section-title">The gap doesn't close on its own</h2>
+      <p class="section-note">AI-forecasted demand and attrition for the next three months, company-wide.</p>
+      <div class="grid-2">
+        <div class="card"><h3>Predicted bookings</h3><p class="card-sub">May – Jul 2026</p><div id="bookingsChart"></div></div>
+        <div class="card"><h3>Therapist hiring gap</h3><p class="card-sub">Additional therapists needed to meet demand</p><div id="gapChart"></div></div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h3>New location staffing model</h3>
+        <p class="card-sub">AI-recommended opening headcount for upcoming locations</p>
+        <div class="table-wrap" id="newLocationTable"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ TAB: CUSTOMER & GROWTH ============ -->
+  <div class="tab-panel" id="tab-growth">
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Total customers</div><div class="value">2,500</div></div>
+      <div class="kpi"><div class="label">Platinum avg. 12mo LTV</div><div class="value">$40.6K</div></div>
+      <div class="kpi"><div class="label">Total members</div><div class="value">2,500</div><div class="foot">incl. 386 non-members</div></div>
+      <div class="kpi"><div class="label">Marketing ROI</div><div class="value pos">3.31x</div><div class="foot">108 campaigns, $847.5K spend</div></div>
+    </div>
+
+    <section class="block">
+      <p class="eyebrow">Customer 360</p>
+      <h2 class="section-title">Value is concentrated at the top</h2>
+      <p class="section-note">Platinum customers are 2.6% of the base but worth 13x the predicted lifetime value of Bronze.</p>
+      <div class="kpi-grid" id="tierKpis"></div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="card"><h3>Tier distribution by location</h3><div id="tierByCityChart"></div></div>
+        <div class="card"><h3>High-churn-risk customers by location</h3><p class="card-sub">Share of customers with ≥70% predicted churn probability</p><div id="churnByCityChart"></div></div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h3>High-value at-risk customers</h3>
+        <p class="card-sub">Platinum &amp; Gold customers ranked by churn probability</p>
+        <div class="table-wrap" id="atRiskTable"></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <p class="eyebrow">Membership</p>
+      <h2 class="section-title">A third of upcoming renewals are at risk</h2>
+      <div class="kpi-grid" id="membershipKpis"></div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="card"><h3>LTV by membership tier</h3><div id="membershipLtvChart"></div></div>
+        <div class="card"><h3>Membership funnel (trailing period)</h3><p class="card-sub">Lifecycle events across the member base</p><div id="membershipFunnelChart"></div></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <p class="eyebrow">Marketing</p>
+      <h2 class="section-title">Campaigns return 3.3x on spend</h2>
+      <div class="grid-2">
+        <div class="card"><h3>ROI by campaign type</h3><div id="campaignTypeChart"></div></div>
+        <div class="card"><h3>ROI by channel</h3><div id="campaignChannelChart"></div></div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h3>Top campaigns by revenue attributed</h3>
+        <div class="table-wrap" id="campaignTable"></div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="foot-note">
+    Source: AIRE_LOCAL_DB.WORKFORCE_ANALYTICS (Snowflake), queried live via MCP on 2026-07-18. Boundary months with incomplete cost data (May 2024, May 2026) are excluded from financial totals and trends.
+  </footer>
+</div>
+
+<script>
+(function () {
+  var CSS = getComputedStyle(document.documentElement);
+  function cv(name) { return CSS.getPropertyValue(name).trim(); }
+  function fmtUSD(n, compact) {
+    if (compact) {
+      var abs = Math.abs(n);
+      if (abs >= 1e6) return (n / 1e6).toFixed(n % 1e6 === 0 ? 0 : 1) + "M";
+      if (abs >= 1e3) return (n / 1e3).toFixed(0) + "K";
+      return String(Math.round(n));
+    }
+    return "$" + Math.round(n).toLocaleString("en-US");
+  }
+  function fmtSigned(n) { return (n < 0 ? "-$" : "+$") + fmtUSD(Math.abs(n)).slice(1); }
+
+  // ---------- Tab switching ----------
+  var tabBtns = document.querySelectorAll(".tab-btn");
+  tabBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      tabBtns.forEach(function (b) { b.classList.remove("active"); b.setAttribute("aria-selected", "false"); });
+      btn.classList.add("active"); btn.setAttribute("aria-selected", "true");
+      document.querySelectorAll(".tab-panel").forEach(function (p) { p.classList.remove("active"); });
+      document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+    });
+  });
+
+  // ---------- Reusable chart primitives ----------
+  function barList(el, items, opts) {
+    opts = opts || {};
+    var max = opts.max || Math.max.apply(null, items.map(function (i) { return Math.abs(i.value); }));
+    items.forEach(function (it) {
+      var row = document.createElement("div");
+      row.className = "bar-row" + (opts.rowClass ? " " + opts.rowClass : "");
+      var pct = max ? (Math.abs(it.value) / max * 100) : 0;
+      var extra = opts.subLabel ? '<div class="funnel-conv">' + opts.subLabel(it) + '</div>' : "";
+      row.innerHTML =
+        '<div class="bar-row-head"><span class="name">' + it.name + '</span><span class="val">' + (opts.valueFmt ? opts.valueFmt(it) : it.value) + '</span></div>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%; background:' + it.color + '"></div></div>' + extra;
+      el.appendChild(row);
+    });
+  }
+
+  function divergingList(el, items, valueKey, nameKey) {
+    var max = Math.max.apply(null, items.map(function (i) { return Math.abs(i[valueKey]); }));
+    items.forEach(function (it) {
+      var pct = (Math.abs(it[valueKey]) / max * 50);
+      var pos = it[valueKey] >= 0;
+      var color = pos ? cv('--blue') : cv('--red');
+      var row = document.createElement("div");
+      row.className = "bar-row";
+      row.innerHTML =
+        '<div class="bar-row-head"><span class="name">' + it[nameKey] + '</span><span class="val" style="color:' + color + '">' + fmtSigned(it[valueKey]) + '</span></div>' +
+        '<div class="div-track"><div class="div-center"></div><div class="div-fill" style="' +
+          (pos ? 'left:50%;' : 'right:50%;') + 'width:' + pct + '%; background:' + color + '"></div></div>';
+      el.appendChild(row);
+    });
+  }
+
+  function dataTable(el, columns, rows, opts) {
+    opts = opts || {};
+    var html = '<table class="data-table"><thead><tr>' +
+      columns.map(function (c) { return '<th>' + c.label + '</th>'; }).join("") + '</tr></thead><tbody>';
+    rows.forEach(function (r) {
+      var hl = opts.highlight && opts.highlight(r);
+      html += '<tr' + (hl ? ' class="hl"' : '') + '>' + columns.map(function (c) {
+        return '<td>' + (c.fmt ? c.fmt(r[c.key], r) : r[c.key]) + '</td>';
+      }).join("") + '</tr>';
+    });
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  }
+
+  function sparkline(svgHost, series, opts) {
+    opts = opts || {};
+    var W = 160, H = 30, PAD = 3;
+    var vals = series.map(function (d) { return d.v; });
+    var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+    if (min === max) { min -= 1; max += 1; }
+    function x(i) { return PAD + (i / (series.length - 1 || 1)) * (W - PAD * 2); }
+    function y(v) { return H - PAD - ((v - min) / (max - min)) * (H - PAD * 2); }
+    var path = series.map(function (d, i) { return (i === 0 ? "M" : "L") + x(i).toFixed(1) + "," + y(d.v).toFixed(1); }).join(" ");
+    var lastX = x(series.length - 1), lastY = y(series[series.length - 1].v);
+    var color = opts.color || cv('--blue');
+    svgHost.innerHTML =
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
+      '<path d="' + path + '" fill="none" stroke="' + color + '" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '<circle cx="' + lastX.toFixed(1) + '" cy="' + lastY.toFixed(1) + '" r="2.5" fill="' + color + '"/>' +
+      '</svg>';
+  }
+
+  function sparkGrid(el, byCity, opts) {
+    opts = opts || {};
+    Object.keys(byCity).sort().forEach(function (city) {
+      var series = byCity[city];
+      var last = series[series.length - 1].v;
+      var cell = document.createElement("div");
+      cell.className = "spark-cell";
+      var color = opts.colorFn ? opts.colorFn(last) : cv('--blue');
+      cell.innerHTML = '<div class="sc-head"><span class="sc-city">' + city + '</span><span class="sc-val" style="color:' + color + '">' + (opts.valueFmt ? opts.valueFmt(last) : last) + '</span></div><div class="sc-svg"></div>';
+      el.appendChild(cell);
+      sparkline(cell.querySelector(".sc-svg"), series, { color: color });
+    });
+  }
+
+  // ============================================================
+  // TAB 1 — FINANCIAL
+  // ============================================================
+
+  var MONTHLY = [
+    ["2024-06","1194965","-667538.34"],["2024-07","1217470","-596425.33"],["2024-08","1235990","-606142.92"],
+    ["2024-09","1046630","-704280.73"],["2024-10","1079855","-753500.82"],["2024-11","1057980","-761864.39"],
+    ["2024-12","1257375","-567605.40"],["2025-01","1130175","-965960.02"],["2025-02","1069415","-864497.72"],
+    ["2025-03","1193760","-721702.99"],["2025-04","1153960","-1007208.12"],["2025-05","1203025","-851827.65"],
+    ["2025-06","1332905","-717587.17"],["2025-07","1379225","-623037.74"],["2025-08","1404435","-654822.10"],
+    ["2025-09","1171850","-764806.03"],["2025-10","1218135","-787094.02"],["2025-11","1656980","-392371.29"],
+    ["2025-12","2211300","209230.40"],["2026-01","2047410","-48725.02"],["2026-02","1857615","-76297.72"],
+    ["2026-03","2038405","122942.01"],["2026-04","1989930","-171238.12"]
+  ].map(function (r) { return { m: r[0], rev: +r[1], profit: +r[2] }; });
+
+  var COSTS = [
+    { name: "Labor",              value: 33294380, color: cv('--blue') },
+    { name: "Operations",         value: 10263300, color: cv('--aqua') },
+    { name: "Rent",               value: 5084488,  color: cv('--yellow') },
+    { name: "Recruiting & agency",value: 2190958,  color: cv('--green') },
+    { name: "Overtime",           value: 1551735,  color: cv('--violet') },
+    { name: "Marketing",          value: 986982,   color: cv('--magenta') }
+  ].sort(function (a, b) { return b.value - a.value; });
+
+  var CITIES = [
+    { city: "Denver", profit: -2523079.58 }, { city: "Seattle", profit: -2518948.34 },
+    { city: "Austin", profit: -2167313.84 }, { city: "Boston", profit: -2121088.04 },
+    { city: "Nashville", profit: -1881338.42 }, { city: "San Francisco", profit: -1800311.73 },
+    { city: "Miami", profit: -1531000.94 }, { city: "Chicago", profit: -1518604.90 },
+    { city: "New York", profit: -983675.48 }, { city: "London", profit: 4073000.04 }
+  ];
+
+  var OVERTIME = [
+    ["New York",166610],["Austin",163900],["Boston",163070],["Miami",162820],["Chicago",162280],
+    ["London",161480],["Denver",156090],["Seattle",155690],["San Francisco",150040],["Nashville",109755]
+  ].map(function (r) { return { name: r[0], value: r[1], color: cv('--red') }; });
+
+  var REV_PER_EMP = [
+    { name: "Chicago", value: 3346590, color: cv('--good') },
+    { name: "Austin",  value: 2679125, color: cv('--orange') }
+  ];
+
+  var INVESTMENT_ROI = {
+    "London":        { rooms:14, util:81.3, ticket:124.95, bookPerRoom:464, revPerRoom:56616, labor:19816, opex:8492, monthlyProfit:28308, annualProfit:339696 },
+    "Miami":         { rooms:10, util:77.5, ticket:113.00, bookPerRoom:98,  revPerRoom:11076, labor:3877,  opex:1661, monthlyProfit:5538,  annualProfit:66456 },
+    "Denver":        { rooms:6,  util:78.7, ticket:113.00, bookPerRoom:98,  revPerRoom:11067, labor:3873,  opex:1660, monthlyProfit:5534,  annualProfit:66402 },
+    "Boston":        { rooms:8,  util:78.3, ticket:113.00, bookPerRoom:98,  revPerRoom:11053, labor:3869,  opex:1658, monthlyProfit:5527,  annualProfit:66318 },
+    "Austin":        { rooms:8,  util:78.3, ticket:113.00, bookPerRoom:98,  revPerRoom:11041, labor:3864,  opex:1656, monthlyProfit:5521,  annualProfit:66246 },
+    "New York":      { rooms:12, util:77.2, ticket:113.00, bookPerRoom:98,  revPerRoom:11035, labor:3862,  opex:1655, monthlyProfit:5518,  annualProfit:66210 },
+    "Seattle":       { rooms:6,  util:78.3, ticket:113.00, bookPerRoom:97,  revPerRoom:10972, labor:3840,  opex:1646, monthlyProfit:5486,  annualProfit:65832 },
+    "Chicago":       { rooms:10, util:77.8, ticket:113.00, bookPerRoom:97,  revPerRoom:10929, labor:3825,  opex:1639, monthlyProfit:5465,  annualProfit:65574 },
+    "Nashville":     { rooms:6,  util:77.4, ticket:113.00, bookPerRoom:97,  revPerRoom:10911, labor:3819,  opex:1637, monthlyProfit:5456,  annualProfit:65466 },
+    "San Francisco": { rooms:8,  util:77.7, ticket:113.00, bookPerRoom:96,  revPerRoom:10876, labor:3807,  opex:1631, monthlyProfit:5438,  annualProfit:65256 }
+  };
+
+  var GEM = [
+    ["Agency Fees",643736.80],["Job Board Spend",292872.00],["Referral Bonuses",239752.00],
+    ["Sourcing Tools",190695.68],["Employer Branding",144841.92],["Interview Costs",96796.48]
+  ].map(function (r, i) { var c = [cv('--blue'),cv('--aqua'),cv('--yellow'),cv('--green'),cv('--violet'),cv('--magenta')]; return { name: r[0], value: r[1], color: c[i] }; });
+
+  var REFUND_TOTALS = { refunds: 2640, amount: 332664, rate: 0.99 };
+  var REFUND_BY_CITY = [
+    ["Denver",2.3389,47423],["Miami",1.6161,54260],["Seattle",1.4080,28381],["Nashville",1.2996,17385],
+    ["San Francisco",1.1866,31750],["Austin",1.1214,30044],["Boston",1.0916,29307],["Chicago",0.8968,30013],
+    ["New York",0.7791,31307],["London",0.3484,32794]
+  ].map(function (r) { return { city: r[0], rate: r[1], amt: r[2] }; });
+
+  var REFUND_BY_SERVICE = [
+    ["Couples Package","Austin",6281],["Couples Package","Boston",5777],["Couples Package","Chicago",5457],["Couples Package","Denver",8297],["Couples Package","London",6308],["Couples Package","Miami",10289],["Couples Package","Nashville",3516],["Couples Package","New York",6719],["Couples Package","San Francisco",7501],["Couples Package","Seattle",3889],
+    ["Float Therapy","Austin",7372],["Float Therapy","Boston",5853],["Float Therapy","Chicago",6360],["Float Therapy","Denver",9389],["Float Therapy","London",6987],["Float Therapy","Miami",10794],["Float Therapy","Nashville",2932],["Float Therapy","New York",6350],["Float Therapy","San Francisco",5844],["Float Therapy","Seattle",6327],
+    ["Group Experience","Austin",5156],["Group Experience","Boston",7684],["Group Experience","Chicago",6249],["Group Experience","Denver",9869],["Group Experience","London",5333],["Group Experience","Miami",12014],["Group Experience","Nashville",4071],["Group Experience","New York",7040],["Group Experience","San Francisco",6482],["Group Experience","Seattle",4956],
+    ["Massage Therapy","Austin",6464],["Massage Therapy","Boston",5721],["Massage Therapy","Chicago",5882],["Massage Therapy","Denver",11025],["Massage Therapy","London",7926],["Massage Therapy","Miami",10519],["Massage Therapy","Nashville",3649],["Massage Therapy","New York",5706],["Massage Therapy","San Francisco",6935],["Massage Therapy","Seattle",7041],
+    ["Thermal Bath","Austin",4771],["Thermal Bath","Boston",4272],["Thermal Bath","Chicago",6065],["Thermal Bath","Denver",8843],["Thermal Bath","London",6240],["Thermal Bath","Miami",10644],["Thermal Bath","Nashville",3217],["Thermal Bath","New York",5492],["Thermal Bath","San Francisco",4988],["Thermal Bath","Seattle",6168]
+  ].map(function (r) { return { service: r[0], city: r[1], amt: r[2] }; });
+
+  barList(document.getElementById("costChart"), COSTS, { valueFmt: function (it) { return "$" + fmtUSD(it.value, true); } });
+  divergingList(document.getElementById("cityChart"), CITIES, "profit", "city");
+
+  document.getElementById("otTotal").textContent = "$" + fmtUSD(OVERTIME.reduce(function (s, o) { return s + o.value; }, 0));
+  document.getElementById("otHighest").textContent = OVERTIME[0].name;
+  barList(document.getElementById("otChart"), OVERTIME, { valueFmt: function (it) { return "$" + fmtUSD(it.value, true); } });
+  barList(document.getElementById("revPerEmpChart"), REV_PER_EMP, { valueFmt: function (it) { return "$" + fmtUSD(it.value, true); } });
+
+  // Room ROI calculator
+  var roiCitySel = document.getElementById("roiCity"), roiCostInput = document.getElementById("roiCost");
+  Object.keys(INVESTMENT_ROI).forEach(function (c) {
+    var o = document.createElement("option"); o.value = c; o.textContent = c; if (c === "London") o.selected = true;
+    roiCitySel.appendChild(o);
+  });
+  function renderROI() {
+    var city = roiCitySel.value, cost = Math.max(1, +roiCostInput.value || 0);
+    var d = INVESTMENT_ROI[city];
+    var payback = cost / d.monthlyProfit;
+    var annualRoi = d.annualProfit / cost * 100;
+    var bookingsNeeded = Math.round(cost / (d.ticket * 12));
+
+    var resEl = document.getElementById("roiResults");
+    resEl.innerHTML = "";
+    [
+      ["Monthly profit / room", "$" + fmtUSD(d.monthlyProfit, true)],
+      ["Payback period", payback.toFixed(1) + " months"],
+      ["Annual ROI", annualRoi.toFixed(1) + "%"],
+      ["Bookings needed / month", bookingsNeeded.toLocaleString("en-US")]
+    ].forEach(function (kv) {
+      var el = document.createElement("div"); el.className = "kpi";
+      el.innerHTML = '<div class="label">' + kv[0] + '</div><div class="value">' + kv[1] + '</div>';
+      resEl.appendChild(el);
+    });
+
+    dataTable(document.getElementById("roiEconTable"),
+      [{ label: "Metric", key: "k" }, { label: "Value", key: "v" }],
+      [
+        { k: "Current rooms", v: d.rooms },
+        { k: "Avg. ticket price", v: "$" + d.ticket.toFixed(2) },
+        { k: "Monthly revenue / room", v: "$" + fmtUSD(d.revPerRoom, true) },
+        { k: "Est. labor (35%)", v: "$" + fmtUSD(d.labor, true) },
+        { k: "Est. OpEx (15%)", v: "$" + fmtUSD(d.opex, true) },
+        { k: "Est. profit / room (50%)", v: "$" + fmtUSD(d.monthlyProfit, true) }
+      ]
+    );
+
+    var scenarios = [100000, 150000, 200000, 250000, 300000].map(function (c) {
+      return { cost: c, payback: c / d.monthlyProfit, roi: d.annualProfit / c * 100 };
+    });
+    dataTable(document.getElementById("roiScenarioTable"),
+      [{ label: "Build cost", key: "cost", fmt: function (v) { return "$" + fmtUSD(v, true); } },
+       { label: "Payback (months)", key: "payback", fmt: function (v) { return v.toFixed(1); } },
+       { label: "Year 1 ROI", key: "roi", fmt: function (v) { return v.toFixed(1) + "%"; } }],
+      scenarios, { highlight: function (r) { return r.cost === cost; } }
+    );
+
+    var cityRoi = Object.keys(INVESTMENT_ROI).map(function (c) {
+      return { name: c, value: INVESTMENT_ROI[c].annualProfit / cost * 100, color: c === city ? cv('--blue') : cv('--seq-350') };
+    }).sort(function (a, b) { return b.value - a.value; });
+    var chartEl = document.getElementById("roiCityChart"); chartEl.innerHTML = "";
+    barList(chartEl, cityRoi, { valueFmt: function (it) { return it.value.toFixed(1) + "%"; } });
+  }
+  roiCitySel.addEventListener("change", renderROI);
+  roiCostInput.addEventListener("input", renderROI);
+  renderROI();
+
+  // Refund analysis
+  barList(document.getElementById("refundRateChart"),
+    REFUND_BY_CITY.map(function (r) { return { name: r.city, value: r.rate, color: cv('--critical') }; }),
+    { valueFmt: function (it) { return it.value.toFixed(2) + "%"; } }
+  );
+  barList(document.getElementById("refundAmtChart"),
+    REFUND_BY_CITY.slice().sort(function (a, b) { return b.amt - a.amt; }).map(function (r) { return { name: r.city, value: r.amt, color: cv('--orange') }; }),
+    { valueFmt: function (it) { return "$" + fmtUSD(it.value, true); } }
+  );
+
+  var refundCityFilter = document.getElementById("refundCityFilter");
+  REFUND_BY_CITY.forEach(function (r) { var o = document.createElement("option"); o.value = r.city; o.textContent = r.city; refundCityFilter.appendChild(o); });
+  function renderRefundDrilldown() {
+    var filter = refundCityFilter.value;
+    var byService = {};
+    REFUND_BY_SERVICE.filter(function (r) { return filter === "All" || r.city === filter; })
+      .forEach(function (r) { byService[r.service] = (byService[r.service] || 0) + r.amt; });
+    var items = Object.keys(byService).map(function (s) { return { name: s, value: byService[s], color: cv('--seq-450') }; })
+      .sort(function (a, b) { return b.value - a.value; });
+    var el = document.getElementById("refundDrilldown"); el.innerHTML = "";
+    barList(el, items, { valueFmt: function (it) { return "$" + fmtUSD(it.value, true); } });
+  }
+  refundCityFilter.addEventListener("change", renderRefundDrilldown);
+  renderRefundDrilldown();
+
+  // ============================================================
+  // TAB 2 — WORKFORCE
+  // ============================================================
+
+  var FUNNEL = [
+    { name: "Applicants", value: 1208, color: cv('--seq-250') },
+    { name: "Screened", value: 977, color: cv('--seq-350') },
+    { name: "Interviewed", value: 660, color: cv('--seq-450') },
+    { name: "Offered", value: 353, color: cv('--seq-550') },
+    { name: "Hired", value: 183, color: cv('--seq-650') }
+  ];
+
+  var TURNOVER = [
+    { role: "Regional Director", rate: 100 }, { role: "HR Business Partner", rate: 100 },
+    { role: "Front Desk", rate: 80 }, { role: "Spa Coordinator", rate: 80 },
+    { role: "Therapist", rate: 80 }, { role: "Senior Therapist", rate: 80 },
+    { role: "Location Manager", rate: 80 }, { role: "Assistant Manager", rate: 80 },
+    { role: "Marketing Specialist", rate: 66.67 }, { role: "Recruiter", rate: 66.67 }
+  ];
+  function riskColor(rate) {
+    if (rate >= 90) return cv('--critical');
+    if (rate >= 70) return cv('--serious');
+    if (rate >= 50) return cv('--warning');
+    return cv('--good');
+  }
+
+  var STAFFING = { understaffed: 138, adequate: 1, atCapacity: 1, total: 140 };
+  var FORECAST = [
+    { m: "May 2026", bookings: 17811, gap: 369 }, { m: "Jun 2026", bookings: 18225, gap: 417 }, { m: "Jul 2026", bookings: 18292, gap: 381 }
+  ];
+
+  var COST_PER_HIRE = [
+    ["London",6976.70],["Miami",4509.35],["Boston",4333.21],["New York",4040.17],["Seattle",3941.98],
+    ["Nashville",3681.23],["Denver",3266.96],["San Francisco",3171.09],["Chicago",2994.71],["Austin",2757.51]
+  ].map(function (r) { return { name: r[0], value: r[1], color: cv('--good') }; });
+
+  var HEADCOUNT_ROLE = {
+    "Assistant Manager": 10, "Spa Coordinator": 10, "Front Desk": 10, "Location Manager": 10,
+    "Therapist": 10, "Senior Therapist": 10, "Marketing Specialist": 5, "Recruiter": 5
+  };
+  var NEW_LOCATIONS = [
+    { city: "Nashville", rooms: 6, open: "2025-01-15", therapists: 1, srTherapists: 1, frontDesk: 1, coordinators: 1, managers: 1, total: 5, ramp: "3-6 months ramp", rec: "Start hiring 90 days before open date" },
+    { city: "Portland",  rooms: 6, open: "2025-09-01", therapists: 1, srTherapists: 1, frontDesk: 1, coordinators: 1, managers: 1, total: 5, ramp: "3-6 months ramp", rec: "Start hiring 90 days before open date" }
+  ];
+
+  document.getElementById("otTotal");
+  barList(document.getElementById("headcountLocChart"), [
+    { name: "Austin", value: 35, color: cv('--blue') }, { name: "Chicago", value: 35, color: cv('--blue') }
+  ], {});
+  barList(document.getElementById("headcountRoleChart"),
+    Object.keys(HEADCOUNT_ROLE).map(function (r) { return { name: r, value: HEADCOUNT_ROLE[r], color: cv('--orange') }; }).sort(function (a, b) { return b.value - a.value; }),
+    {}
+  );
+
+  (function renderStaffingAlerts() {
+    var el = document.getElementById("staffingAlerts");
+    var alerts = [
+      { text: "138 of 140 location-months (98.6%) are UNDERSTAFFED relative to booking demand", n: 138 },
+      { text: "2 roles (Regional Director, HR Business Partner) are at 100% trailing-12-month turnover", n: 2 },
+      { text: "8 of 10 locations have no active-employee record in Workday HCM", n: 8 },
+      { text: "Company-wide therapist hiring gap of 381 projected for Jul 2026", n: 381 }
+    ];
+    alerts.forEach(function (a) {
+      var d = document.createElement("div"); d.className = "alert-banner critical";
+      d.innerHTML = '<span class="n">' + a.n + '</span><span>' + a.text + '</span>';
+      el.appendChild(d);
+    });
+  })();
+
+  barList(document.getElementById("funnelChart"), FUNNEL, {
+    rowClass: "funnel-row",
+    valueFmt: function (it) { return it.value.toLocaleString("en-US"); },
+    subLabel: function (it) {
+      var idx = FUNNEL.indexOf(it); if (idx === 0) return "";
+      var prev = FUNNEL[idx - 1];
+      return (it.value / prev.value * 100).toFixed(0) + "% of " + prev.name.toLowerCase();
+    }
+  });
+  barList(document.getElementById("turnoverChart"),
+    TURNOVER.map(function (t) { return { name: t.role, value: t.rate, color: riskColor(t.rate), rate: t.rate }; }),
+    { max: 100, valueFmt: function (it) { return it.rate.toFixed(0) + "%"; } }
+  );
+  barList(document.getElementById("costPerHireChart"), COST_PER_HIRE, { valueFmt: function (it) { return "$" + it.value.toFixed(0); } });
+  barList(document.getElementById("gemChart"), GEM, { valueFmt: function (it) { return "$" + fmtUSD(it.value, true); } });
+
+  barList(document.getElementById("bookingsChart"),
+    FORECAST.map(function (f) { return { name: f.m, value: f.bookings, color: cv('--blue') }; }),
+    { valueFmt: function (it) { return it.value.toLocaleString("en-US"); } }
+  );
+  barList(document.getElementById("gapChart"),
+    FORECAST.map(function (f) { return { name: f.m, value: f.gap, color: cv('--critical') }; }),
+    { valueFmt: function (it) { return it.value.toLocaleString("en-US") + " therapists"; } }
+  );
+
+  dataTable(document.getElementById("newLocationTable"),
+    [{ label: "City", key: "city" }, { label: "Rooms", key: "rooms" }, { label: "Planned open", key: "open" },
+     { label: "Therapists", key: "therapists" }, { label: "Sr. therapists", key: "srTherapists" },
+     { label: "Front desk", key: "frontDesk" }, { label: "Coordinators", key: "coordinators" }, { label: "Managers", key: "managers" },
+     { label: "Total staff", key: "total" }, { label: "Ramp time", key: "ramp" }, { label: "Recommendation", key: "rec" }],
+    NEW_LOCATIONS
+  );
+
+  (function staffingMeter() {
+    var el = document.getElementById("staffingMeter");
+    var t = STAFFING.total;
+    var wrap = document.createElement("div"); wrap.className = "meter-wrap";
+    [{ n: STAFFING.understaffed, color: cv('--critical') }, { n: STAFFING.atCapacity, color: cv('--warning') }, { n: STAFFING.adequate, color: cv('--good') }]
+      .forEach(function (s) {
+        if (s.n <= 0) return;
+        var d = document.createElement("div"); d.className = "meter-seg";
+        d.style.width = Math.max(s.n / t * 100, 1.2) + "%"; d.style.background = s.color;
+        wrap.appendChild(d);
+      });
+    el.appendChild(wrap);
+    var leg = document.createElement("div"); leg.className = "meter-legend";
+    leg.innerHTML =
+      '<div class="item"><span class="swatch" style="background:' + cv('--critical') + '"></span>Understaffed <span class="n">' + STAFFING.understaffed + '</span></div>' +
+      '<div class="item"><span class="swatch" style="background:' + cv('--warning') + '"></span>At capacity <span class="n">' + STAFFING.atCapacity + '</span></div>' +
+      '<div class="item"><span class="swatch" style="background:' + cv('--good') + '"></span>Adequately staffed <span class="n">' + STAFFING.adequate + '</span></div>' +
+      '<div class="item">out of <span class="n">' + STAFFING.total + '</span> location-months</div>';
+    el.appendChild(leg);
+  })();
+
+  var DEMAND_RATIO_RAW = [["Austin","2024-12",2.32],["Austin","2025-01",2.01],["Austin","2025-02",1.82],["Austin","2025-03",2.02],["Austin","2025-04",1.95],["Austin","2025-05",2.04],["Austin","2025-06",2.27],["Austin","2025-07",2.35],["Austin","2025-08",2.39],["Austin","2025-09",2.02],["Austin","2025-10",2.03],["Austin","2025-11",2.03],["Austin","2025-12",2.39],["Austin","2026-01",2.11],["Austin","2026-02",1.93],["Austin","2026-03",2.09],["Austin","2026-04",2.06],
+    ["Boston","2024-08",2.28],["Boston","2024-09",1.89],["Boston","2024-10",1.97],["Boston","2024-11",1.92],["Boston","2024-12",2.31],["Boston","2025-01",1.98],["Boston","2025-02",1.83],["Boston","2025-03",2.05],["Boston","2025-04",1.97],["Boston","2025-05",2.04],["Boston","2025-06",2.30],["Boston","2025-07",2.41],["Boston","2025-08",2.42],["Boston","2025-09",2.01],["Boston","2025-10",2.07],["Boston","2025-11",2.07],["Boston","2025-12",2.39],["Boston","2026-01",2.10],["Boston","2026-02",1.91],["Boston","2026-03",2.15],["Boston","2026-04",2.06],
+    ["Chicago","2024-08",2.84],["Chicago","2024-09",2.40],["Chicago","2024-10",2.49],["Chicago","2024-11",2.39],["Chicago","2024-12",2.86],["Chicago","2025-01",2.50],["Chicago","2025-02",2.29],["Chicago","2025-03",2.55],["Chicago","2025-04",2.50],["Chicago","2025-05",2.57],["Chicago","2025-06",2.80],["Chicago","2025-07",2.90],["Chicago","2025-08",2.97],["Chicago","2025-09",2.49],["Chicago","2025-10",2.65],["Chicago","2025-11",2.51],["Chicago","2025-12",3.03],["Chicago","2026-01",2.60],["Chicago","2026-02",2.36],["Chicago","2026-03",2.63],["Chicago","2026-04",2.56],
+    ["Denver","2026-02",1.44],["Denver","2026-03",1.61],
+    ["London","2024-10",3.46],["London","2024-11",3.42],["London","2024-12",4.03],["London","2025-01",3.49],["London","2025-02",3.16],["London","2025-03",3.54],["London","2025-04",3.42],["London","2025-05",3.58],["London","2025-06",4.03],["London","2025-07",4.08],["London","2025-08",4.25],["London","2025-09",3.49],["London","2025-10",3.72],["London","2025-11",11.51],["London","2025-12",18.68],["London","2026-01",17.94],["London","2026-02",16.24],
+    ["Miami","2025-02",2.32],["Miami","2025-03",2.56],["Miami","2025-04",2.47],["Miami","2025-05",2.54],["Miami","2025-06",2.86],["Miami","2025-07",2.94],["Miami","2025-08",3.00],["Miami","2025-09",2.55],["Miami","2025-10",2.57],["Miami","2025-11",2.54],["Miami","2025-12",3.08],["Miami","2026-01",2.63],["Miami","2026-02",2.39],["Miami","2026-03",2.63],["Miami","2026-04",2.60],
+    ["Nashville","2025-12",1.79],["Nashville","2026-01",1.59],["Nashville","2026-02",1.42],["Nashville","2026-03",1.60],
+    ["New York","2025-11",3.08],["New York","2025-12",3.57],
+    ["San Francisco","2024-08",2.23],["San Francisco","2024-09",1.91],["San Francisco","2024-10",1.93],["San Francisco","2024-11",1.94],["San Francisco","2024-12",2.32],["San Francisco","2025-01",1.98],["San Francisco","2025-02",1.81],["San Francisco","2025-03",2.05],["San Francisco","2025-04",1.97],["San Francisco","2025-05",2.07],["San Francisco","2025-06",2.28],["San Francisco","2025-07",2.41],["San Francisco","2025-08",2.43],["San Francisco","2025-09",1.96],["San Francisco","2025-10",2.09],["San Francisco","2025-11",2.06],["San Francisco","2025-12",2.42],["San Francisco","2026-01",2.07],["San Francisco","2026-02",1.88],["San Francisco","2026-03",2.10],
+    ["Seattle","2024-08",1.73],["Seattle","2024-09",1.47],["Seattle","2024-10",1.49],["Seattle","2024-11",1.48],["Seattle","2024-12",1.72],["Seattle","2025-01",1.54],["Seattle","2025-02",1.37],["Seattle","2025-03",1.55],["Seattle","2025-04",1.47],["Seattle","2025-05",1.53],["Seattle","2025-06",1.67],["Seattle","2025-07",1.77],["Seattle","2025-08",1.81],["Seattle","2025-09",1.52],["Seattle","2025-10",1.57],["Seattle","2025-11",1.53],["Seattle","2025-12",1.80],["Seattle","2026-01",1.56],["Seattle","2026-02",1.44]
+  ];
+  var demandByCity = {};
+  DEMAND_RATIO_RAW.forEach(function (r) { (demandByCity[r[0]] = demandByCity[r[0]] || []).push({ t: r[1], v: r[2] }); });
+  sparkGrid(document.getElementById("demandSparkGrid"), demandByCity, {
+    valueFmt: function (v) { return v.toFixed(2) + "x"; },
+    colorFn: function (v) { return v > 1 ? cv('--critical') : cv('--good'); }
+  });
+
+  var RETENTION_HEATMAP = [
+    ["Assistant Manager","Austin",0],["Assistant Manager","Boston",100],["Assistant Manager","Chicago",0],["Assistant Manager","Denver",100],["Assistant Manager","London",100],["Assistant Manager","Miami",100],["Assistant Manager","Nashville",100],["Assistant Manager","New York",100],["Assistant Manager","San Francisco",100],["Assistant Manager","Seattle",100],
+    ["Front Desk","Austin",0],["Front Desk","Boston",100],["Front Desk","Chicago",0],["Front Desk","Denver",100],["Front Desk","London",100],["Front Desk","Miami",100],["Front Desk","Nashville",100],["Front Desk","New York",100],["Front Desk","San Francisco",100],["Front Desk","Seattle",100],
+    ["HR Business Partner","New York",100],
+    ["Location Manager","Austin",0],["Location Manager","Boston",100],["Location Manager","Chicago",0],["Location Manager","Denver",100],["Location Manager","London",100],["Location Manager","Miami",100],["Location Manager","Nashville",100],["Location Manager","New York",100],["Location Manager","San Francisco",100],["Location Manager","Seattle",100],
+    ["Marketing Specialist","Austin",0],["Marketing Specialist","New York",100],["Marketing Specialist","San Francisco",100],
+    ["Recruiter","Chicago",0],["Recruiter","New York",100],["Recruiter","San Francisco",100],
+    ["Regional Director","Miami",100],["Regional Director","New York",100],["Regional Director","San Francisco",100],
+    ["Senior Therapist","Austin",0],["Senior Therapist","Boston",100],["Senior Therapist","Chicago",0],["Senior Therapist","Denver",100],["Senior Therapist","London",100],["Senior Therapist","Miami",100],["Senior Therapist","Nashville",100],["Senior Therapist","New York",100],["Senior Therapist","San Francisco",100],["Senior Therapist","Seattle",100],
+    ["Spa Coordinator","Austin",0],["Spa Coordinator","Boston",100],["Spa Coordinator","Chicago",0],["Spa Coordinator","Denver",100],["Spa Coordinator","London",100],["Spa Coordinator","Miami",100],["Spa Coordinator","Nashville",100],["Spa Coordinator","New York",100],["Spa Coordinator","San Francisco",100],["Spa Coordinator","Seattle",100],
+    ["Therapist","Austin",0],["Therapist","Boston",100],["Therapist","Chicago",0],["Therapist","Denver",100],["Therapist","London",100],["Therapist","Miami",100],["Therapist","Nashville",100],["Therapist","New York",100],["Therapist","San Francisco",100],["Therapist","Seattle",100]
+  ];
+  (function renderHeatmap() {
+    var roles = [], cities = [], lookup = {};
+    RETENTION_HEATMAP.forEach(function (r) {
+      if (roles.indexOf(r[0]) === -1) roles.push(r[0]);
+      if (cities.indexOf(r[1]) === -1) cities.push(r[1]);
+      lookup[r[0] + "|" + r[1]] = r[2];
+    });
+    cities.sort();
+    var html = '<table class="heatmap"><thead><tr><th class="rh"></th>' + cities.map(function (c) { return '<th>' + c.slice(0, 3) + '</th>'; }).join("") + '</tr></thead><tbody>';
+    roles.forEach(function (role) {
+      html += '<tr><td class="rh">' + role + '</td>' + cities.map(function (c) {
+        var v = lookup[role + "|" + c];
+        if (v === undefined) return '<td class="cell empty"></td>';
+        var color = v >= 90 ? cv('--critical') : v >= 70 ? cv('--serious') : v >= 50 ? cv('--warning') : cv('--good');
+        return '<td class="cell"><div style="background:' + color + '">' + v + '</div></td>';
+      }).join("") + '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById("retentionHeatmap").innerHTML = html;
+  })();
+
+  var LABOR_RAW = [["Austin","2024-06",172325],["Austin","2024-07",161700],["Austin","2024-08",144020],["Austin","2024-09",121115],["Austin","2024-10",166955],["Austin","2024-11",157235],["Austin","2024-12",164755],["Austin","2025-01",182015],["Austin","2025-02",144960],["Austin","2025-03",157390],["Austin","2025-04",186875],["Austin","2025-05",191005],["Austin","2025-06",172325],["Austin","2025-07",161700],["Austin","2025-08",144020],["Austin","2025-09",121115],["Austin","2025-10",166955],["Austin","2025-11",157235],["Austin","2025-12",164755],["Austin","2026-01",182015],["Austin","2026-02",144960],["Austin","2026-03",157390],["Austin","2026-04",186875],
+    ["Boston","2024-06",123470],["Boston","2024-07",171035],["Boston","2024-08",174455],["Boston","2024-09",160840],["Boston","2024-10",185650],["Boston","2024-11",173190],["Boston","2024-12",148960],["Boston","2025-01",163630],["Boston","2025-02",171790],["Boston","2025-03",134285],["Boston","2025-04",165625],["Boston","2025-05",136115],["Boston","2025-06",123470],["Boston","2025-07",171035],["Boston","2025-08",174455],["Boston","2025-09",160840],["Boston","2025-10",185650],["Boston","2025-11",173190],["Boston","2025-12",148960],["Boston","2026-01",163630],["Boston","2026-02",171790],["Boston","2026-03",134285],["Boston","2026-04",165625],
+    ["Chicago","2024-06",180195],["Chicago","2024-07",170365],["Chicago","2024-08",184235],["Chicago","2024-09",166300],["Chicago","2024-10",159515],["Chicago","2024-11",120460],["Chicago","2024-12",168845],["Chicago","2025-01",140390],["Chicago","2025-02",119060],["Chicago","2025-03",157405],["Chicago","2025-04",181955],["Chicago","2025-05",135555],["Chicago","2025-06",180195],["Chicago","2025-07",170365],["Chicago","2025-08",184235],["Chicago","2025-09",166300],["Chicago","2025-10",159515],["Chicago","2025-11",120460],["Chicago","2025-12",168845],["Chicago","2026-01",140390],["Chicago","2026-02",119060],["Chicago","2026-03",157405],["Chicago","2026-04",181955],
+    ["Denver","2024-06",168965],["Denver","2024-07",151085],["Denver","2024-08",133675],["Denver","2024-09",123840],["Denver","2024-10",152680],["Denver","2024-11",119665],["Denver","2024-12",163350],["Denver","2025-01",217700],["Denver","2025-02",139515],["Denver","2025-03",119065],["Denver","2025-04",180125],["Denver","2025-05",176650],["Denver","2025-06",168965],["Denver","2025-07",151085],["Denver","2025-08",133675],["Denver","2025-09",123840],["Denver","2025-10",152680],["Denver","2025-11",119665],["Denver","2025-12",163350],["Denver","2026-01",217700],["Denver","2026-02",139515],["Denver","2026-03",119065],["Denver","2026-04",180125],
+    ["London","2024-06",134400],["London","2024-07",158045],["London","2024-08",162310],["London","2024-09",166430],["London","2024-10",148485],["London","2024-11",158115],["London","2024-12",151100],["London","2025-01",159510],["London","2025-02",149815],["London","2025-03",139000],["London","2025-04",172480],["London","2025-05",173260],["London","2025-06",134400],["London","2025-07",158045],["London","2025-08",162310],["London","2025-09",166430],["London","2025-10",148485],["London","2025-11",158115],["London","2025-12",151100],["London","2026-01",159510],["London","2026-02",149815],["London","2026-03",139000],["London","2026-04",172480],
+    ["Miami","2024-06",149450],["Miami","2024-07",140030],["Miami","2024-08",150105],["Miami","2024-09",153500],["Miami","2024-10",136935],["Miami","2024-11",180555],["Miami","2024-12",176020],["Miami","2025-01",168260],["Miami","2025-02",163555],["Miami","2025-03",174455],["Miami","2025-04",155400],["Miami","2025-05",154750],["Miami","2025-06",149450],["Miami","2025-07",140030],["Miami","2025-08",150105],["Miami","2025-09",153500],["Miami","2025-10",136935],["Miami","2025-11",180555],["Miami","2025-12",176020],["Miami","2026-01",168260],["Miami","2026-02",163555],["Miami","2026-03",174455],["Miami","2026-04",155400],
+    ["Nashville","2025-01",156130],["Nashville","2025-02",165030],["Nashville","2025-03",123915],["Nashville","2025-04",195705],["Nashville","2025-05",178800],["Nashville","2025-06",141240],["Nashville","2025-07",149090],["Nashville","2025-08",177935],["Nashville","2025-09",148500],["Nashville","2025-10",128690],["Nashville","2025-11",192325],["Nashville","2025-12",132470],["Nashville","2026-01",156130],["Nashville","2026-02",165030],["Nashville","2026-03",123915],["Nashville","2026-04",195705],
+    ["New York","2024-06",169655],["New York","2024-07",180750],["New York","2024-08",161480],["New York","2024-09",158860],["New York","2024-10",139010],["New York","2024-11",188210],["New York","2024-12",148810],["New York","2025-01",145015],["New York","2025-02",128635],["New York","2025-03",182900],["New York","2025-04",153190],["New York","2025-05",169825],["New York","2025-06",169655],["New York","2025-07",180750],["New York","2025-08",161480],["New York","2025-09",158860],["New York","2025-10",139010],["New York","2025-11",188210],["New York","2025-12",148810],["New York","2026-01",145015],["New York","2026-02",128635],["New York","2026-03",182900],["New York","2026-04",153190],
+    ["San Francisco","2024-06",167135],["San Francisco","2024-07",114390],["San Francisco","2024-08",177280],["San Francisco","2024-09",162400],["San Francisco","2024-10",156710],["San Francisco","2024-11",142310],["San Francisco","2024-12",133050],["San Francisco","2025-01",156640],["San Francisco","2025-02",145255],["San Francisco","2025-03",125980],["San Francisco","2025-04",133340],["San Francisco","2025-05",127890],["San Francisco","2025-06",167135],["San Francisco","2025-07",114390],["San Francisco","2025-08",177280],["San Francisco","2025-09",162400],["San Francisco","2025-10",156710],["San Francisco","2025-11",142310],["San Francisco","2025-12",133050],["San Francisco","2026-01",156640],["San Francisco","2026-02",145255],["San Francisco","2026-03",125980],["San Francisco","2026-04",133340],
+    ["Seattle","2024-06",162745],["Seattle","2024-07",145610],["Seattle","2024-08",139450],["Seattle","2024-09",122530],["Seattle","2024-10",183415],["Seattle","2024-11",160110],["Seattle","2024-12",152445],["Seattle","2025-01",149885],["Seattle","2025-02",136210],["Seattle","2025-03",143860],["Seattle","2025-04",186135],["Seattle","2025-05",146415],["Seattle","2025-06",162745],["Seattle","2025-07",145610],["Seattle","2025-08",139450],["Seattle","2025-09",122530],["Seattle","2025-10",183415],["Seattle","2025-11",160110],["Seattle","2025-12",152445],["Seattle","2026-01",149885],["Seattle","2026-02",136210],["Seattle","2026-03",143860],["Seattle","2026-04",186135]
+  ];
+  var laborByCity = {};
+  LABOR_RAW.forEach(function (r) { (laborByCity[r[0]] = laborByCity[r[0]] || []).push({ t: r[1], v: r[2] }); });
+  sparkGrid(document.getElementById("laborSparkGrid"), laborByCity, { valueFmt: function (v) { return "$" + fmtUSD(v, true); }, colorFn: function () { return cv('--blue'); } });
+
+  // ============================================================
+  // TAB 3 — CUSTOMER & GROWTH
+  // ============================================================
+
+  var TIERS = [
+    { tier: "Platinum", n: 65, ltv: 40613.10 }, { tier: "Gold", n: 345, ltv: 22517.12 },
+    { tier: "Silver", n: 1396, ltv: 16301.97 }, { tier: "Bronze", n: 694, ltv: 3001.30 }
+  ];
+  var tierColors = { Platinum: cv('--violet'), Gold: cv('--yellow'), Silver: cv('--seq-350'), Bronze: cv('--orange') };
+  (function renderTierKpis() {
+    var el = document.getElementById("tierKpis");
+    TIERS.forEach(function (t) {
+      var d = document.createElement("div"); d.className = "kpi";
+      d.innerHTML = '<div class="label">' + t.tier + '</div><div class="value">' + t.n.toLocaleString("en-US") + '</div><div class="foot">Avg. 12mo LTV $' + fmtUSD(t.ltv, true) + '</div>';
+      el.appendChild(d);
+    });
+  })();
+
+  var TIER_BY_CITY = { "Austin":[8,42,167,84],"Boston":[7,39,159,80],"Chicago":[7,39,161,79],"Denver":[7,36,152,78],"Miami":[8,41,171,89],"Nashville":[6,32,132,68],"New York":[7,37,155,78],"San Francisco":[7,35,148,75],"Seattle":[8,44,175,86] };
+  (function renderTierByCity() {
+    var el = document.getElementById("tierByCityChart");
+    Object.keys(TIER_BY_CITY).sort().forEach(function (city) {
+      var vals = TIER_BY_CITY[city], total = vals.reduce(function (a, b) { return a + b; }, 0);
+      var row = document.createElement("div"); row.className = "stackbar-row";
+      var track = document.createElement("div"); track.className = "stackbar-track";
+      ["Platinum","Gold","Silver","Bronze"].forEach(function (tier, i) {
+        var seg = document.createElement("div"); seg.className = "stackbar-seg";
+        seg.style.width = (vals[i] / total * 100) + "%"; seg.style.background = tierColors[tier];
+        seg.title = tier + ": " + vals[i];
+        track.appendChild(seg);
+      });
+      row.innerHTML = '<div class="sb-label">' + city + '</div>';
+      row.appendChild(track);
+      el.appendChild(row);
+    });
+    var leg = document.createElement("div"); leg.className = "legend"; leg.style.marginTop = "12px";
+    ["Platinum","Gold","Silver","Bronze"].forEach(function (t) {
+      leg.innerHTML += '<div class="legend-item"><span class="swatch" style="background:' + tierColors[t] + '"></span>' + t + '</div>';
+    });
+    el.appendChild(leg);
+  })();
+
+  var CHURN_BY_CITY = [["San Francisco",21.93],["Seattle",19.72],["Denver",19.64],["Nashville",18.96],["Austin",18.82],["Chicago",18.11],["Boston",17.78],["Miami",16.40],["New York",13.77]]
+    .map(function (r) { return { name: r[0], value: r[1], color: cv('--critical') }; });
+  barList(document.getElementById("churnByCityChart"), CHURN_BY_CITY, { valueFmt: function (it) { return it.value.toFixed(1) + "%"; } });
+
+  var AT_RISK = [
+    ["Emma","Hernandez","Gold",12160,73,69,12160],["Olivia","Moore","Gold",10137,49,69,10161],
+    ["Amelia","Jones","Gold",26676,85,68,40548],["Amelia","Harris","Platinum",21470,57,68,55994],
+    ["Mia","Garcia","Platinum",25974,74,68,53735],["Logan","Anderson","Gold",20608,66,67,20262],
+    ["Harper","Miller","Gold",24720,77,67,28557],["Elijah","Jackson","Gold",8439,90,67,12706]
+  ].map(function (r) { return { name: r[0] + " " + r[1], tier: r[2], spend: r[3], days: r[4], churn: r[5], ltv: r[6] }; });
+  dataTable(document.getElementById("atRiskTable"),
+    [{ label: "Customer", key: "name" }, { label: "Tier", key: "tier" },
+     { label: "Lifetime spend", key: "spend", fmt: function (v) { return "$" + fmtUSD(v); } },
+     { label: "Days since visit", key: "days" },
+     { label: "Churn probability", key: "churn", fmt: function (v) { return v + "%"; } },
+     { label: "Predicted 12mo LTV", key: "ltv", fmt: function (v) { return "$" + fmtUSD(v); } }],
+    AT_RISK
+  );
+
+  var MEMBERSHIP_LTV = [
+    { tier: "None", customers: 386, ltv: 10226.48 }, { tier: "Gold", customers: 858, ltv: 9939.57 },
+    { tier: "Silver", customers: 891, ltv: 9899.90 }, { tier: "Platinum", customers: 365, ltv: 9072.57 }
+  ];
+  var MEMBERSHIP_RENEWALS = { members: 858 + 891 + 365, upgrade: 194 + 169 + 0, atRisk: 499 + 576 + 209 };
+  (function renderMembershipKpis() {
+    var el = document.getElementById("membershipKpis");
+    [
+      ["Platinum members", "365", "Avg. LTV $9,073"], ["Gold members", "858", "Avg. LTV $9,940"],
+      ["Silver members", "891", "Avg. LTV $9,900"], ["Non-members", "386", "Avg. LTV $10,226"],
+      ["Upcoming renewals", MEMBERSHIP_RENEWALS.members.toLocaleString("en-US"), ""],
+      ["At risk", MEMBERSHIP_RENEWALS.atRisk.toLocaleString("en-US"), "need intervention"],
+      ["Upgrade candidates", MEMBERSHIP_RENEWALS.upgrade.toLocaleString("en-US"), "+revenue opportunity"]
+    ].forEach(function (kv) {
+      var d = document.createElement("div"); d.className = "kpi";
+      d.innerHTML = '<div class="label">' + kv[0] + '</div><div class="value">' + kv[1] + '</div>' + (kv[2] ? '<div class="foot">' + kv[2] + '</div>' : '');
+      el.appendChild(d);
+    });
+  })();
+  barList(document.getElementById("membershipLtvChart"),
+    MEMBERSHIP_LTV.map(function (t) { return { name: t.tier, value: t.ltv, color: tierColors[t.tier] || cv('--seq-450') }; }),
+    { valueFmt: function (it) { return "$" + fmtUSD(it.value, true); } }
+  );
+  barList(document.getElementById("membershipFunnelChart"),
+    [["Signup",1350],["Upgrade",1350],["Renewal",900],["Downgrade",450],["Cancellation",450]]
+      .map(function (r, i) { var c = [cv('--good'), cv('--blue'), cv('--seq-350'), cv('--warning'), cv('--critical')]; return { name: r[0], value: r[1], color: c[i] }; }),
+    { valueFmt: function (it) { return it.value.toLocaleString("en-US"); } }
+  );
+
+  var CAMPAIGN_TYPE = [["Seasonal Promo",7.91],["Email Nurture",6.99],["Referral",6.68],["Loyalty Reward",5.70],["Win-Back",4.87],["Promotional Blast",4.62]]
+    .map(function (r) { return { name: r[0], value: r[1], color: cv('--good') }; });
+  var CAMPAIGN_CHANNEL = [["Email",6.61],["Social Media",6.57],["SMS",6.00],["Push Notification",5.34]]
+    .map(function (r) { return { name: r[0], value: r[1], color: cv('--violet') }; });
+  barList(document.getElementById("campaignTypeChart"), CAMPAIGN_TYPE, { valueFmt: function (it) { return it.value.toFixed(1) + "x"; } });
+  barList(document.getElementById("campaignChannelChart"), CAMPAIGN_CHANNEL, { valueFmt: function (it) { return it.value.toFixed(1) + "x"; } });
+
+  var CAMPAIGN_DETAIL = [
+    ["Couples Valentine Promo – New York","Loyalty Reward","Push Notification","Lapsed 60+ Days",3038,49730,16.37,2.4,"Active"],
+    ["Summer Float Special – Miami","Promotional Blast","Push Notification","New Joiners",13230,48671,3.68,2.4,"Completed"],
+    ["Summer Float Special – New York","Promotional Blast","Push Notification","Lapsed 60+ Days",13278,48233,3.63,1.8,"Completed"],
+    ["Holiday Gift Card Promo – Denver","Referral","Push Notification","Platinum Members",12949,47814,3.69,5.0,"Completed"],
+    ["Birthday Month Offer – Miami","Win-Back","Email","Platinum Members",8233,47607,5.78,14.9,"Active"],
+    ["Group Booking Discount – London","Loyalty Reward","SMS","High Spenders",11191,47465,4.24,2.7,"Active"],
+    ["Group Booking Discount – Miami","Loyalty Reward","SMS","Platinum Members",6499,47092,7.25,2.4,"Completed"],
+    ["Platinum Member Exclusive – Miami","Email Nurture","Social Media","New Joiners",13954,46634,3.34,5.1,"Active"]
+  ].map(function (r) { return { name: r[0], type: r[1], channel: r[2], segment: r[3], budget: r[4], revenue: r[5], roi: r[6], conv: r[7], status: r[8] }; });
+  dataTable(document.getElementById("campaignTable"),
+    [{ label: "Campaign", key: "name" }, { label: "Type", key: "type" }, { label: "Channel", key: "channel" }, { label: "Segment", key: "segment" },
+     { label: "Budget", key: "budget", fmt: function (v) { return "$" + v.toLocaleString("en-US"); } },
+     { label: "Revenue", key: "revenue", fmt: function (v) { return "$" + v.toLocaleString("en-US"); } },
+     { label: "ROI", key: "roi", fmt: function (v) { return v.toFixed(1) + "x"; } },
+     { label: "Conv.", key: "conv", fmt: function (v) { return v.toFixed(1) + "%"; } },
+     { label: "Status", key: "status" }],
+    CAMPAIGN_DETAIL
+  );
+
+  // ============================================================
+  // Revenue vs profit trend (unchanged from v1)
+  // ============================================================
+  (function trendChart() {
+    var host = document.getElementById("trendChart");
+    var W = 1100, H = 320, PAD_L = 56, PAD_R = 16, PAD_T = 16, PAD_B = 30;
+    var plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
+
+    var allVals = MONTHLY.reduce(function (a, d) { return a.concat([d.rev, d.profit]); }, []);
+    var yMax = Math.max.apply(null, allVals), yMin = Math.min(0, Math.min.apply(null, allVals));
+    yMax = Math.ceil(yMax / 200000) * 200000; yMin = Math.floor(yMin / 200000) * 200000;
+
+    function x(i) { return PAD_L + (i / (MONTHLY.length - 1)) * plotW; }
+    function y(v) { return PAD_T + (1 - (v - yMin) / (yMax - yMin)) * plotH; }
+    function path(key) { return MONTHLY.map(function (d, i) { return (i === 0 ? "M" : "L") + x(i).toFixed(1) + "," + y(d[key]).toFixed(1); }).join(" "); }
+
+    var yTicks = [], step = (yMax - yMin) / 4;
+    for (var i = 0; i <= 4; i++) yTicks.push(yMin + step * i);
+
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H); svg.setAttribute("class", "linechart");
+
+    var gridHTML = "";
+    yTicks.forEach(function (v) {
+      var yy = y(v).toFixed(1);
+      gridHTML += '<line x1="' + PAD_L + '" x2="' + (W - PAD_R) + '" y1="' + yy + '" y2="' + yy + '" stroke="' + cv('--grid') + '" stroke-width="1"/>';
+      gridHTML += '<text x="' + (PAD_L - 10) + '" y="' + yy + '" text-anchor="end" dominant-baseline="middle" font-size="11" fill="' + cv('--ink-muted') + '">' + fmtUSD(v, true) + '</text>';
+    });
+    var zeroY = y(0).toFixed(1);
+    gridHTML += '<line x1="' + PAD_L + '" x2="' + (W - PAD_R) + '" y1="' + zeroY + '" y2="' + zeroY + '" stroke="' + cv('--baseline') + '" stroke-width="1"/>';
+
+    var monthTicksHTML = "";
+    MONTHLY.forEach(function (d, i) {
+      if (i % 3 !== 0 && i !== MONTHLY.length - 1) return;
+      var label = new Date(d.m + "-01T00:00:00").toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+      monthTicksHTML += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10.5" fill="' + cv('--ink-muted') + '">' + label + '</text>';
+    });
+
+    var areaPath = path("profit") + " L" + x(MONTHLY.length - 1).toFixed(1) + "," + zeroY + " L" + x(0).toFixed(1) + "," + zeroY + " Z";
+
+    svg.innerHTML =
+      gridHTML +
+      '<path d="' + areaPath + '" fill="' + cv('--red') + '" opacity="0.10" stroke="none"/>' +
+      '<path d="' + path("rev") + '" fill="none" stroke="' + cv('--blue') + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '<path d="' + path("profit") + '" fill="none" stroke="' + cv('--red') + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '<circle cx="' + x(MONTHLY.length - 1).toFixed(1) + '" cy="' + y(MONTHLY[MONTHLY.length - 1].rev).toFixed(1) + '" r="4" fill="' + cv('--blue') + '" stroke="' + cv('--surface') + '" stroke-width="2"/>' +
+      '<circle cx="' + x(MONTHLY.length - 1).toFixed(1) + '" cy="' + y(MONTHLY[MONTHLY.length - 1].profit).toFixed(1) + '" r="4" fill="' + cv('--red') + '" stroke="' + cv('--surface') + '" stroke-width="2"/>' +
+      monthTicksHTML + '<g id="hoverLayer"></g>';
+
+    host.appendChild(svg);
+    var tooltip = document.createElement("div"); tooltip.className = "tooltip"; host.appendChild(tooltip);
+
+    var hoverLayer = svg.querySelector("#hoverLayer");
+    var crosshair = document.createElementNS(svgNS, "line");
+    crosshair.setAttribute("y1", PAD_T); crosshair.setAttribute("y2", PAD_T + plotH);
+    crosshair.setAttribute("stroke", cv('--baseline')); crosshair.setAttribute("stroke-width", "1");
+    crosshair.style.display = "none"; hoverLayer.appendChild(crosshair);
+    var dotRev = document.createElementNS(svgNS, "circle"), dotProfit = document.createElementNS(svgNS, "circle");
+    [dotRev, dotProfit].forEach(function (d) {
+      d.setAttribute("r", "5"); d.setAttribute("stroke", cv('--surface')); d.setAttribute("stroke-width", "2");
+      d.style.display = "none"; hoverLayer.appendChild(d);
+    });
+    dotRev.setAttribute("fill", cv('--blue')); dotProfit.setAttribute("fill", cv('--red'));
+
+    var hitRect = document.createElementNS(svgNS, "rect");
+    hitRect.setAttribute("x", PAD_L); hitRect.setAttribute("y", PAD_T);
+    hitRect.setAttribute("width", plotW); hitRect.setAttribute("height", plotH);
+    hitRect.setAttribute("fill", "transparent"); svg.appendChild(hitRect);
+
+    function showAt(i) {
+      var d = MONTHLY[i];
+      crosshair.setAttribute("x1", x(i)); crosshair.setAttribute("x2", x(i)); crosshair.style.display = "block";
+      dotRev.setAttribute("cx", x(i)); dotRev.setAttribute("cy", y(d.rev)); dotRev.style.display = "block";
+      dotProfit.setAttribute("cx", x(i)); dotProfit.setAttribute("cy", y(d.profit)); dotProfit.style.display = "block";
+      var label = new Date(d.m + "-01T00:00:00").toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      tooltip.innerHTML =
+        '<div class="t-month">' + label + '</div>' +
+        '<div class="t-row"><span class="t-dot" style="background:' + cv('--blue') + '"></span>Revenue<span class="t-val">' + fmtUSD(d.rev) + '</span></div>' +
+        '<div class="t-row"><span class="t-dot" style="background:' + cv('--red') + '"></span>Net profit<span class="t-val">' + fmtSigned(d.profit) + '</span></div>';
+      tooltip.style.opacity = "1";
+      var leftPct = (x(i) / W * 100);
+      tooltip.style.left = leftPct > 70 ? "auto" : (leftPct + 2) + "%";
+      tooltip.style.right = leftPct > 70 ? (100 - leftPct + 2) + "%" : "auto";
+      tooltip.style.top = "6px";
+    }
+    function hide() { crosshair.style.display = "none"; dotRev.style.display = "none"; dotProfit.style.display = "none"; tooltip.style.opacity = "0"; }
+    hitRect.addEventListener("mousemove", function (e) {
+      var rect = svg.getBoundingClientRect();
+      var px = (e.clientX - rect.left) / rect.width * W;
+      var i = Math.round((px - PAD_L) / plotW * (MONTHLY.length - 1));
+      i = Math.max(0, Math.min(MONTHLY.length - 1, i));
+      showAt(i);
+    });
+    hitRect.addEventListener("mouseleave", hide);
+  })();
+})();
+</script>
